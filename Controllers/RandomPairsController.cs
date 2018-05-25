@@ -22,6 +22,7 @@ namespace RandomPairsApp.Controllers
         }
 
         // Get the latest 20 pairs
+        // GET api/randompairs/get-latest
         [HttpGet("get-latest")]
         public IActionResult GetLatestPairs()
         {
@@ -43,6 +44,7 @@ namespace RandomPairsApp.Controllers
             }
         }
 
+        // GET api/randompairs/get-sum
         [HttpGet("get-sum")]
         public async Task<IActionResult> GetSum()
         {
@@ -69,6 +71,7 @@ namespace RandomPairsApp.Controllers
             }
         }
 
+        // GET api/randompairs/get-median
         [HttpGet("get-median")]
         public IActionResult GetMedian()
         {
@@ -89,6 +92,7 @@ namespace RandomPairsApp.Controllers
             }
         }
 
+        // GET api/randompairs/get-sum-count
         [HttpGet("get-sum-count")]
         public IActionResult GetSumCount()
         {
