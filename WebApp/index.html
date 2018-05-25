@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>AngularJS RandomPairs</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.10/angular.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+        crossorigin="anonymous">
+
+    <script type='text/javascript'>//<![CDATA[ 
+        var randomPairsApp = angular.module('randomPairsApp', []);
+
+        randomPairsApp.controller('RandomPairsController',
+            function RandomPairsController($scope, $http, $interval) {
+                $scope.apiEndPoint = "http://localhost:5000/api/randompairs";
+                $scope.latestPairs = [];
+                $scope.sumCount = 0;
+                $scope.newSumValue = 0;
+                $scope.newMedianValue = 0;
+                $scope.refreshInterval = 5; // seconds
+                $scope.uiUpdateInterval = 1;
+                $scope.remaindingUpdateTime = $scope.refreshInterval;
+
+                $scope.getLatestPairs = function () {
+                    $http.get($scope.apiEndPoint + "/get-latest")
+                        .then(function (res) {
+                            $scope.latestPairs = res.data;
+                        });
+                };
+
+                $scope.getSum = function () {
+                    $http.get($scope.apiEndPoint + "/get-sum")
+                        .then(function (res) {
+                            if (res.status == 200) {
+                                $scope.newSumValue = res.data.newSumValue;
+                                $scope.sumCount = res.data.sumCount;
+                            }
+                            else
+                                $scope.newSumValue = "No sum available";
+                        })
+                        .catch(function (res) {
+                            $scope.newSumValue = "Error";
+                        });
+                };
+
+                $scope.getMedian = function () {
+                    $http.get($scope.apiEndPoint + "/get-median")
+                        .then(function (res) {
+                            if (res.status == 200)
+                                $scope.newMedianValue = res.data;
+                        })
+                        .catch(function (res) {
+                            $scope.newMedianValue = -1; // error
+                        });
+                }
+
+                $scope.getSumCount = function () {
+                    $http.get($scope.apiEndPoint + "/get-sum-count")
+                        .then(function (res) {
+                            if (res.status == 200)
+                                $scope.sumCount = res.data;
+                        })
+                        .catch(function (res) {
+                            console.error("Error getting the Sum list info.");
+                        });
+                }
+
+                // run immediately when page loads
+                $scope.getLatestPairs();
+                $scope.getSumCount();
+                $interval(function () {
+                    $scope.remaindingUpdateTime -= 1;
+                    if ($scope.remaindingUpdateTime == 0) {
+                        $scope.remaindingUpdateTime = $scope.refreshInterval;
+                        $scope.getLatestPairs();
+                    }
+                }, $scope.uiUpdateInterval * 1000);
+            });
+//]]>  
+    </script>
+</head>
+
+<body>
+    <div class="container" ng-app="randomPairsApp">
+        <h1>Random Pairs App</h1>
+        <div ng-controller="RandomPairsController" class="col col-md-12">
+            <h3>Latest pairs</h3>
+            <small class="text-muted">
+                Refresh in {{remaindingUpdateTime}}s...
+            </small>
+            <div ng-if="latestPairs.length > 0">
+                {{latestPairs}}
+            </div>
+            <div ng-if="latestPairs.length <= 0">
+                No random pairs yet.
+            </div>
+            <br/>
+            <div class="row">
+                <div class="col col-md-5 col-sm-12">
+                    <h3>Sum</h3>
+                    <div ng-if="sumCount > 0">
+                        The sum list has {{sumCount}} item(s).
+                    </div>
+                    <div ng-if="sumCount <= 0">
+                        The sum list is empty.
+                    </div>
+                    <div>
+                        New sum value: {{newSumValue}}
+                    </div>
+                    <br/>
+                    <input class="btn-primary" type="button" value="Get Sum" ng-click="getSum()">
+                </div>
+                <br/>
+                <div class="col col-md-5 col-sm-12 col-md-offset-1">
+                    <h3>Median</h3>
+                    <div ng-if="newMedianValue > 0">
+                        New median value: {{newMedianValue}}
+                    </div>
+                    <div ng-if="newMedianValue <= 0">
+                        No median value is available.
+                    </div>
+                    <br/>
+                    <input class="btn-primary" type="button" value="Get Median" ng-click="getMedian() ">
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
